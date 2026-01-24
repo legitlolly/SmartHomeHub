@@ -3,7 +3,7 @@ package device
 import "time"
 
 type State struct {
-	Power      string
-	Brightness int
+	DeviceType string
 	UpdatedAt  time.Time
+	Attributes map[string]interface{}
 }

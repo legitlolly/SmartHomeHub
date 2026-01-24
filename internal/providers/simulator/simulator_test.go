@@ -22,8 +22,8 @@ func TestSimulatedDevice_ExecuteandState(t *testing.T) {
 	}
 
 	state, _ := testDev1.State(ctx)
-	if state.Power != "on" {
-		t.Errorf("Test failed -> expected on, got %s", state.Power)
+	if state.Attributes["power"] != "on" {
+		t.Errorf("Test failed -> expected on, got %s", state.Attributes["power"])
 	}
 
 	cmdBrightness := device.Command{
@@ -37,8 +37,8 @@ func TestSimulatedDevice_ExecuteandState(t *testing.T) {
 	}
 
 	state, _ = testDev1.State(ctx)
-	if state.Brightness != 50 {
-		t.Errorf("Test failed -> expected brightness=50, got %d", state.Brightness)
+	if state.Attributes["brightness"] != 50 {
+		t.Errorf("Test failed -> expected brightness=50, got %d", state.Attributes["brightness"])
 	}
 }
 

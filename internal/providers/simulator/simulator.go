@@ -10,19 +10,22 @@ import (
 )
 
 type SimulatedDevice struct {
-	id         device.ID
-	state      device.State
-	stateMutex sync.RWMutex // Doesn't block on reads like Mutex does.
+	id device.ID
+
+	// Internal state - just the raw values
+	power      string
+	brightness int
+	updatedAt  time.Time
+
+	stateMutex sync.RWMutex
 }
 
 func NewSimulatedDevice(id device.ID) *SimulatedDevice {
 	return &SimulatedDevice{
-		id: id,
-		state: device.State{
-			Power:      "off",
-			Brightness: 0,
-			UpdatedAt:  time.Now(),
-		},
+		id:         id,
+		power:      "off", // Start off
+		brightness: 0,
+		updatedAt:  time.Now(),
 	}
 }
 
@@ -39,9 +42,9 @@ func (d *SimulatedDevice) Execute(ctx context.Context, cmd device.Command) error
 
 	switch cmd.Action {
 	case "turn_on":
-		d.state.Power = "on"
+		d.power = "on"
 	case "turn_off":
-		d.state.Power = "off"
+		d.power = "off"
 	case "set_brightness":
 		val, ok := cmd.Params["value"].(int)
 		if !ok {
@@ -50,12 +53,12 @@ func (d *SimulatedDevice) Execute(ctx context.Context, cmd device.Command) error
 		if val < 0 || val > 100 {
 			return errors.New("brightness must be 0-100")
 		}
-		d.state.Brightness = val
+		d.brightness = val
 	default:
 		return errors.New("unknown command")
 	}
 
-	d.state.UpdatedAt = time.Now()
+	d.updatedAt = time.Now()
 	return nil
 }
 
@@ -63,9 +66,13 @@ func (d *SimulatedDevice) State(ctx context.Context) (device.State, error) {
 	d.stateMutex.RLock()
 	defer d.stateMutex.RUnlock()
 
+	// Build the State struct from internal fields
 	return device.State{
-		Power:      d.state.Power,
-		Brightness: d.state.Brightness,
-		UpdatedAt:  d.state.UpdatedAt,
+		DeviceType: "light",
+		UpdatedAt:  d.updatedAt,
+		Attributes: map[string]interface{}{
+			"power":      d.power,
+			"brightness": d.brightness,
+		},
 	}, nil
 }

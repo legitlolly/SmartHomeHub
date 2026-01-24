@@ -102,8 +102,8 @@ func TestRegistry_UpdateDevice(t *testing.T) {
 
 	state, _ := retrieved.State(ctx)
 
-	if state.Brightness != 50 {
-		t.Fatalf("Stored device brightness is incorrect, expected 50 got %d", state.Brightness)
+	if state.Attributes["brightness"] != 50 {
+		t.Fatalf("Stored device brightness is incorrect, expected 50 got %d", state.Attributes["brightness"])
 	}
 
 }
