@@ -11,6 +11,7 @@ import (
 
 	"github.com/legitlolly/SmartHomeHub/internal/api"
 	"github.com/legitlolly/SmartHomeHub/internal/device"
+	"github.com/legitlolly/SmartHomeHub/internal/providers/hue"
 	"github.com/legitlolly/SmartHomeHub/internal/providers/simulator"
 )
 
@@ -26,6 +27,21 @@ func main() {
 		log.Printf("Failed to register temp device: %v", err)
 	}
 	log.Println("Registered temp device: temp-light-1")
+
+	// Load Hue configuration from environment
+	hueIP := os.Getenv("HUE_BRIDGE_IP")
+	hueUsername := os.Getenv("HUE_USERNAME")
+
+	if hueIP != "" && hueUsername != "" {
+		log.Println("Hue configuration detected, discovering Hue devices...")
+
+		// Discover and register all lights on the bridge
+		if err := hue.DiscoverAndRegisterLights(ctx, registry, hueIP, hueUsername); err != nil {
+			log.Printf("Failed to discover Hue devices: %v", err)
+		}
+	} else {
+		log.Println("Hue configuration not found (HUE_BRIDGE_IP and HUE_USERNAME not set)")
+	}
 
 	handler := api.NewHandler(registry)
 	mux := http.NewServeMux()

@@ -20,9 +20,28 @@ func NewHandler(registry *device.Registry) *Handler {
 func (h *Handler) ListDevices(w http.ResponseWriter, r *http.Request) {
 	devices := h.registry.List()
 
+	deviceList := make([]map[string]interface{}, 0, len(devices))
+	for id, dev := range devices {
+		state, err := dev.State(r.Context())
+		if err != nil {
+			deviceList = append(deviceList, map[string]interface{}{
+				"id":    id,
+				"error": err.Error(),
+			})
+			continue
+		}
+
+		deviceList = append(deviceList, map[string]interface{}{
+			"id":          id,
+			"device_type": state.DeviceType,
+			"updated_at":  state.UpdatedAt,
+			"state":       state.Attributes,
+		})
+	}
+
 	response := map[string]interface{}{
-		"count":   len(devices),
-		"devices": devices,
+		"count":   len(deviceList),
+		"devices": deviceList,
 	}
 	w.Header().Set("Content-Type", "application/json")
 
