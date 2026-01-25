@@ -8,14 +8,28 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
+
+	"github.com/legitlolly/SmartHomeHub/internal/api"
+	"github.com/legitlolly/SmartHomeHub/internal/device"
+	"github.com/legitlolly/SmartHomeHub/internal/providers/simulator"
 )
 
 func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
+	registry := device.NewRegistry()
+
+	//temp test device
+	tempDevice := simulator.NewSimulatedDevice("temp-light-1")
+	if err := registry.Register(tempDevice); err != nil {
+		log.Printf("Failed to register temp device: %v", err)
+	}
+	log.Println("Registered temp device: temp-light-1")
+
+	handler := api.NewHandler(registry)
 	mux := http.NewServeMux()
-	mux.HandleFunc("/health", healthHandler)
+	handler.RegisterRoutes(mux)
 
 	srv := &http.Server{
 		Addr:         ":8080",
@@ -42,9 +56,4 @@ func main() {
 	if err := srv.Shutdown(shutdownCtx); err != nil {
 		log.Printf("graceful shutdown failed: %v", err)
 	}
-}
-
-func healthHandler(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("ok"))
 }
