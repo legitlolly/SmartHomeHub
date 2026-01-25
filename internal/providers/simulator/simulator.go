@@ -46,14 +46,19 @@ func (d *SimulatedDevice) Execute(ctx context.Context, cmd device.Command) error
 	case "turn_off":
 		d.power = "off"
 	case "set_brightness":
-		val, ok := cmd.Params["value"].(int)
-		if !ok {
-			return errors.New("invalid value for brightness")
+		var brightness int
+		switch v := cmd.Params["value"].(type) {
+		case float64:
+			brightness = int(v)
+		case int:
+			brightness = v
+		default:
+			return errors.New("Invalid value for brightness")
 		}
-		if val < 0 || val > 100 {
-			return errors.New("brightness must be 0-100")
+		if brightness < 0 || brightness > 100 {
+			return errors.New("Brightness must be 0-100")
 		}
-		d.brightness = val
+		d.brightness = brightness
 	default:
 		return errors.New("unknown command")
 	}
