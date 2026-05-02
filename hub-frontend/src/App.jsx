@@ -49,6 +49,7 @@ function DeviceCard({ device }) {
         {isOn ? 'On' : 'Off'}
       </button>
       <Slider
+        disabled={!isOn}
         value={brightness}
         onChange={handleBrightness}
         onChangeCommitted={handleBrightnessCommitted}
